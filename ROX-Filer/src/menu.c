@@ -196,6 +196,7 @@ static GtkItemFactoryEntry filer_menu_def[] = {
 {">>" N_("Types"),		NULL, set_with, DETAILS_TYPE, NULL},
 {">>" N_("Times"),		NULL, set_with, DETAILS_TIMES, NULL},
 {">" N_("List View"),   	NULL, view_type, VIEW_TYPE_DETAILS, "<StockItem>", ROX_STOCK_SHOW_DETAILS},
+{">" N_("Library View"),	NULL, view_type, VIEW_TYPE_LIBRARY, "<StockItem>", ROX_STOCK_LIBRARY},
 {">",				NULL, NULL, 0, "<Separator>"},
 {">" N_("Bigger Icons"),   	"equal", change_size, 1, "<StockItem>", GTK_STOCK_ZOOM_IN},
 {">" N_("Smaller Icons"),   	"minus", change_size, -1, "<StockItem>", GTK_STOCK_ZOOM_OUT},
@@ -918,6 +919,10 @@ static void view_type(gpointer data, guint action, GtkWidget *widget)
 		display_set_layout(window_with_focus,
 				window_with_focus->display_style_wanted,
 				DETAILS_NONE, FALSE);
+	else if (view_type == VIEW_TYPE_LIBRARY)
+		display_set_layout(window_with_focus,
+				window_with_focus->display_style_wanted,
+				DETAILS_LIBRARY, FALSE);
 
 	filer_set_view_type(window_with_focus, (ViewType) action);
 }

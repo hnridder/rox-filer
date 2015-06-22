@@ -722,6 +722,10 @@ static char *details(FilerWindow *filer_window, DirItem *item)
 				user_name(item->uid),
 				group_name(item->gid));
 	}
+	else if (filer_window->details_type == DETAILS_LIBRARY)
+	{
+		buf = g_strdup_printf("Hola!");
+	}
 	else
 	{
 		if (!scanned)

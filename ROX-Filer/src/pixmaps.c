@@ -102,6 +102,7 @@ static const char *stocks[] = {
 	ROX_STOCK_MOUNTED,
 	ROX_STOCK_SYMLINK,
 	ROX_STOCK_XATTR,
+	ROX_STOCK_LIBRARY,
 };
 
 /* Static prototypes */

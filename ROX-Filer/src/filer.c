@@ -1706,6 +1706,7 @@ void filer_set_view_type(FilerWindow *filer_window, ViewType type)
 
 	switch (type)
 	{
+		case VIEW_TYPE_LIBRARY:
 		case VIEW_TYPE_COLLECTION:
 			view = view_collection_new(filer_window);
 			break;

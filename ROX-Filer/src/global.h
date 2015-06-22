@@ -133,6 +133,7 @@ typedef enum {		/* Values used in options, must start at 0 */
 	DETAILS_PERMISSIONS	= 3,
 	DETAILS_TYPE		= 4,
 	DETAILS_TIMES		= 5,
+	DETAILS_LIBRARY     = 6,
 	DETAILS_UNKNOWN		= -1,
 } DetailsType;
 
@@ -184,6 +185,7 @@ enum
 #define ROX_STOCK_MOUNTED      "rox-mounted"
 #define ROX_STOCK_XATTR        "rox-xattr"
 #define ROX_STOCK_SYMLINK      "rox-symlink"
+#define ROX_STOCK_LIBRARY      "rox-library"
 
 /* Re-use an existing icon for a slightly different purpose */
 #define ROX_STOCK_BOOKMARKS    GTK_STOCK_JUMP_TO
