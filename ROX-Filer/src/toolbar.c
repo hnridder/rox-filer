@@ -499,6 +499,9 @@ static void toolbar_sort_clicked(GtkWidget *widget,
 static void toolbar_details_clicked(GtkWidget *widget,
 				    FilerWindow *filer_window)
 {
+	display_set_layout(filer_window,
+			filer_window->display_style_wanted,
+			o_display_details.int_value, FALSE);
 	if (filer_window->view_type == VIEW_TYPE_DETAILS)
 		filer_set_view_type(filer_window, VIEW_TYPE_COLLECTION);
 	else
@@ -562,7 +565,7 @@ static void toolbar_lib_clicked(GtkWidget *widget,
 				o_display_sort_by.int_value, GTK_SORT_ASCENDING);
 		display_set_layout(filer_window,
 				filer_window->display_style_wanted,
-				DETAILS_NONE, FALSE);
+				o_display_details.int_value, FALSE);
 		filer_set_view_type(filer_window, VIEW_TYPE_COLLECTION);
 	}
 }

@@ -530,6 +530,7 @@ static gboolean details_get_sort_column_id(GtkTreeSortable *sortable,
 		case SORT_SIZE: col = COL_SIZE; break;
 		case SORT_OWNER: col = COL_OWNER; break;
 		case SORT_GROUP: col = COL_GROUP; break;
+		case SORT_TITLE: col = COL_LEAF; break;
 		default:
 			g_warning("details_get_sort_column_id(): error!");
 			return FALSE;
@@ -1185,6 +1186,7 @@ static void resort(ViewDetails *view_details)
 		case SORT_SIZE: view_details->sort_fn = sort_by_size; break;
 		case SORT_OWNER: view_details->sort_fn = sort_by_owner; break;
 		case SORT_GROUP: view_details->sort_fn = sort_by_group; break;
+		case SORT_TITLE: view_details->sort_fn = sort_by_title; break;
 		default:
 			g_assert_not_reached();
 	}
