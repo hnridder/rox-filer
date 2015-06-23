@@ -466,17 +466,17 @@ int sort_by_title(const void *item1, const void *item2)
 	gchar *v1, *v2;
 	int retval;
 
-	if(i1->booktitle_collate) {
-		n1 = i1->booktitle_collate;
-		v1 = i1->booktitle;
+	if(i1->title_collate) {
+		n1 = i1->title_collate;
+		v1 = i1->title;
 	} else {
 		n1 = i1->leafname_collate;
 		v1 = i1->leafname;
 	}
 
-	if(i2->booktitle_collate) {
-		n2 = i2->booktitle_collate;
-		v2 = i2->booktitle;
+	if(i2->title_collate) {
+		n2 = i2->title_collate;
+		v2 = i2->title;
 	} else {
 		n2 = i2->leafname_collate;
 		v2 = i2->leafname;
@@ -752,11 +752,19 @@ static char *details(FilerWindow *filer_window, DirItem *item)
 	else if (filer_window->details_type == DETAILS_LIBRARY)
 	{
 		const gchar *path = make_path(filer_window->real_path, item->leafname);
-		gchar *author = xattr_get(path, "user.book.author", NULL);
-		gchar *publisher = xattr_get(path, "user.book.publisher", NULL);
-		gchar *year = xattr_get(path, "user.book.year", NULL);
+		gchar *author = NULL, *pub = NULL, *year = NULL;
 		gchar *tmp;
 		const gchar *sep;
+
+		if(item->flags & ITEM_FLAG_IS_BOOK) {
+			author = xattr_get(path, "user.book.author", NULL);
+			pub = xattr_get(path, "user.book.publisher", NULL);
+			year = xattr_get(path, "user.book.year", NULL);
+		} else if(item->flags & ITEM_FLAG_IS_ARTICLE) {
+			author = xattr_get(path, "user.article.author", NULL);
+			pub = xattr_get(path, "user.article.journal", NULL);
+			year = xattr_get(path, "user.article.year", NULL);
+		}
 
 		if(filer_window->display_style == SMALL_ICONS)
 			sep = " - ";
@@ -769,23 +777,23 @@ static char *details(FilerWindow *filer_window, DirItem *item)
 			tmp = g_markup_escape_text(author,-1);
 			g_free(author);
 			author = tmp;
-			if(!publisher && !year) {
+			if(!pub && !year) {
 				buf = g_strdup(author);
-			} else if(publisher && !year) {
-				tmp = g_markup_escape_text(publisher,-1);
-				g_free(publisher);
-				publisher = tmp;
-				buf = g_strdup_printf("%s%s<i>%s</i>",author,sep,publisher);
-				g_free(publisher);
-			} else if(!publisher && year) {
+			} else if(pub && !year) {
+				tmp = g_markup_escape_text(pub,-1);
+				g_free(pub);
+				pub = tmp;
+				buf = g_strdup_printf("%s%s<i>%s</i>",author,sep,pub);
+				g_free(pub);
+			} else if(!pub && year) {
 				buf = g_strdup_printf("%s%s<i>(%s)</i>",author,sep,year);
 				g_free(year);
 			} else {
-				tmp = g_markup_escape_text(publisher,-1);
-				g_free(publisher);
-				publisher = tmp;
-				buf = g_strdup_printf("%s%s<i>%s (%s)</i>",author,sep,publisher,year);
-				g_free(publisher);
+				tmp = g_markup_escape_text(pub,-1);
+				g_free(pub);
+				pub = tmp;
+				buf = g_strdup_printf("%s%s<i>%s (%s)</i>",author,sep,pub,year);
+				g_free(pub);
 				g_free(year);
 			}
 			g_free(author);
@@ -926,7 +934,11 @@ void display_update_view(FilerWindow *filer_window,
 		if(filer_window->view_type == VIEW_TYPE_LIBRARY && (item->flags & ITEM_FLAG_IS_BOOK)) {
 			view->image = im_book;
 			g_object_ref(im_book);
-		} else
+		} else if(filer_window->view_type == VIEW_TYPE_LIBRARY && (item->flags & ITEM_FLAG_IS_ARTICLE)) {
+			view->image = im_article;
+			g_object_ref(im_article);
+		}
+		else
 			view->image = di_image(item);
 		if (view->image)
 			g_object_ref(view->image);
@@ -946,12 +958,11 @@ void display_update_view(FilerWindow *filer_window,
 	{
 		if(filer_window->view_type == VIEW_TYPE_LIBRARY)
 		{
-			const guchar *path = make_path(filer_window->real_path, item->leafname);
-			guchar *title = xattr_get(path, "user.book.title", NULL);
 			PangoAttribute	*attr;
-			if(title) {
+
+			if(item->title) {
 				view->layout = gtk_widget_create_pango_layout(
-					filer_window->window, title);
+					filer_window->window, item->title);
 				attr = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
 				attr->start_index = 0;
 				attr->end_index = -1;

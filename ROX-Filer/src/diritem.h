@@ -29,6 +29,7 @@ typedef enum
 	
 	ITEM_FLAG_HAS_XATTR      = 0x200, /* Has extended attributes set */
 	ITEM_FLAG_IS_BOOK	= 0x400, /* Is a book */
+	ITEM_FLAG_IS_ARTICLE	= 0x800, /* Is an article */
 } ItemFlags;
 
 struct _DirItem
@@ -44,8 +45,8 @@ struct _DirItem
 	MaskedPixmap	*_image;	/* NULL => leafname only so far */
 	MIME_type	*mime_type;
 	GdkColor	*label;
-	char		*booktitle;
-	CollateKey	*booktitle_collate;
+	char		*title;
+	CollateKey	*title_collate;
 	uid_t		uid;
 	gid_t		gid;
 	int		lstat_errno;	/* 0 if details are valid */

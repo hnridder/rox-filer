@@ -963,7 +963,7 @@ static void update_item(ViewCollection *view_collection, int i)
 	display_update_view(filer_window,
 			(DirItem *) colitem->data,
 			(ViewData *) colitem->view_data,
-			FALSE);
+			(filer_window->view_type == VIEW_TYPE_LIBRARY) ? TRUE : FALSE);
 	
 	calc_size(filer_window, colitem, &w, &h); 
 	if (w > old_w || h > old_h)

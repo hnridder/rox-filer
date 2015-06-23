@@ -110,12 +110,14 @@ void diritem_restat(const guchar *path, DirItem *item, struct stat *parent)
 
 		item->label = xlabel_get(path);
 
-		if (xattr_get(path, "user.book", NULL))
+		if (xattr_get(path, "user.book", NULL)) {
 			item->flags |= ITEM_FLAG_IS_BOOK;
-
-		if(item->flags & ITEM_FLAG_IS_BOOK) {
-			item->booktitle = xattr_get(path, "user.book.title", NULL);
-			item->booktitle_collate = collate_key_new(item->booktitle);
+			item->title = xattr_get(path, "user.book.title", NULL);
+			item->title_collate = collate_key_new(item->title);
+		} else if (xattr_get(path, "user.article", NULL)) {
+			item->flags |= ITEM_FLAG_IS_ARTICLE;
+			item->title = xattr_get(path, "user.article.title", NULL);
+			item->title_collate = collate_key_new(item->title);
 		}
 
 		if (S_ISLNK(info.st_mode))
@@ -230,8 +232,8 @@ DirItem *diritem_new(const guchar *leafname)
 	item->mime_type = NULL;
 	item->leafname_collate = collate_key_new(item->leafname);
 	item->label = NULL;
-	item->booktitle = NULL;
-	item->booktitle_collate = NULL;
+	item->title = NULL;
+	item->title_collate = NULL;
 
 	return item;
 }
@@ -248,6 +250,10 @@ void diritem_free(DirItem *item)
 		g_free(item->label);
 	item->label = NULL;
 	g_free(item->leafname);
+	if (item->title) {
+		g_free(item->title);
+		collate_key_free(item->title_collate);
+	}
 	g_free(item);
 }
 
