@@ -70,7 +70,7 @@ static const gchar *mini_contents(FilerWindow *filer_window);
 static void show_help(FilerWindow *filer_window);
 static gboolean grab_focus(GtkWidget *minibuffer);
 static gboolean select_if_glob(ViewIter *iter, gpointer data);
-static void view_select_if_reg(ViewIface *obj, const gchar *pattern);
+static void view_select_if_reg(ViewIface *obj, const gchar *pattern, gboolean flag);
 
 /****************************************************************
  *			EXTERNAL INTERFACE			*
@@ -208,7 +208,7 @@ void minibuffer_show(FilerWindow *filer_window, MiniType mini_type, guint keyval
 
 			gchar it[2] = {keyval? : '^', '\0'};
 			gtk_entry_set_text(mini, it);
-			view_select_if_reg(filer_window->view, it);
+			view_select_if_reg(filer_window->view, it, FALSE);
 			ViewIter iter;
 			view_get_iter(filer_window->view, &iter,
 					VIEW_ITER_FROM_BASE | VIEW_ITER_SELECTED);
@@ -1152,10 +1152,20 @@ static gboolean select_if_reg_cb(ViewIter *iter, gpointer exp)
 	item = iter->peek(iter);
 	g_return_val_if_fail(item != NULL, FALSE);
 
+	return regexec((regex_t *) exp, item->leafname, 0, NULL, 0) == 0;
+}
+
+static gboolean select_if_reg_lib_cb(ViewIter *iter, gpointer exp)
+{
+	DirItem *item;
+
+	item = iter->peek(iter);
+	g_return_val_if_fail(item != NULL, FALSE);
+
 	return regexec((regex_t *) exp, (item->title) ? item->title : item->leafname, 0, NULL, 0) == 0;
 }
 
-static void view_select_if_reg(ViewIface *obj, const gchar *pattern)
+static void view_select_if_reg(ViewIface *obj, const gchar *pattern, gboolean flag)
 {
 	regex_t exp;
 
@@ -1165,7 +1175,7 @@ static void view_select_if_reg(ViewIface *obj, const gchar *pattern)
 		view_clear_selection(obj);
 	else	
 	{
-		view_select_if(obj, select_if_reg_cb, (gpointer) &exp);
+		view_select_if(obj, flag ? select_if_reg_lib_cb : select_if_reg_cb, (gpointer) &exp);
 		regfree(&exp);
 	}
 }
@@ -1197,7 +1207,9 @@ static void changed(GtkEditable *mini, FilerWindow *filer_window)
 		case MINI_EASY_SELECT:
 			view_select_if_reg(filer_window->view,
 					gtk_entry_get_text(
-						GTK_ENTRY(filer_window->minibuffer)));
+						GTK_ENTRY(filer_window->minibuffer)),
+					filer_window->view_type == VIEW_TYPE_LIBRARY ? 
+					TRUE : FALSE);
 			view_get_iter(filer_window->view, &iter,
 					VIEW_ITER_FROM_BASE | VIEW_ITER_SELECTED);
 			if (iter.next(&iter))
