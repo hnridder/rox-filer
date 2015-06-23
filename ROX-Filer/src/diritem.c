@@ -110,6 +110,14 @@ void diritem_restat(const guchar *path, DirItem *item, struct stat *parent)
 
 		item->label = xlabel_get(path);
 
+		if (xattr_get(path, "user.book", NULL))
+			item->flags |= ITEM_FLAG_IS_BOOK;
+
+		if(item->flags & ITEM_FLAG_IS_BOOK) {
+			item->booktitle = xattr_get(path, "user.book.title", NULL);
+			item->booktitle_collate = collate_key_new(item->booktitle);
+		}
+
 		if (S_ISLNK(info.st_mode))
 		{
 			if (mc_stat(path, &info))
@@ -222,6 +230,8 @@ DirItem *diritem_new(const guchar *leafname)
 	item->mime_type = NULL;
 	item->leafname_collate = collate_key_new(item->leafname);
 	item->label = NULL;
+	item->booktitle = NULL;
+	item->booktitle_collate = NULL;
 
 	return item;
 }

@@ -18,6 +18,7 @@ extern MaskedPixmap *im_exec_file;
 extern MaskedPixmap *im_appdir;
 
 extern MaskedPixmap *im_dirs;
+extern MaskedPixmap *im_book;
 
 extern GtkIconSize mount_icon_size;
 

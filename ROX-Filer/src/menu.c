@@ -915,14 +915,17 @@ static void view_type(gpointer data, guint action, GtkWidget *widget)
 
 	g_return_if_fail(window_with_focus != NULL);
 
-	if (view_type == VIEW_TYPE_COLLECTION)
+	if (view_type == VIEW_TYPE_COLLECTION) {
+		display_set_sort_type(window_with_focus, o_display_sort_by.int_value, GTK_SORT_ASCENDING);
 		display_set_layout(window_with_focus,
 				window_with_focus->display_style_wanted,
 				DETAILS_NONE, FALSE);
-	else if (view_type == VIEW_TYPE_LIBRARY)
+	} else if (view_type == VIEW_TYPE_LIBRARY) {
+		display_set_sort_type(window_with_focus, SORT_TITLE, GTK_SORT_ASCENDING);
 		display_set_layout(window_with_focus,
 				window_with_focus->display_style_wanted,
 				DETAILS_LIBRARY, FALSE);
+	}
 
 	filer_set_view_type(window_with_focus, (ViewType) action);
 }

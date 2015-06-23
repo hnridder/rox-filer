@@ -52,17 +52,11 @@ int sort_by_date(const void *item1, const void *item2);
 int sort_by_size(const void *item1, const void *item2);
 int sort_by_owner(const void *item1, const void *item2);
 int sort_by_group(const void *item1, const void *item2);
+int sort_by_title(const void *item1, const void *item2);
 void display_set_sort_type(FilerWindow *filer_window, SortType sort_type,
 			   GtkSortType order);
 void display_set_autoselect(FilerWindow *filer_window, const gchar *leaf);
 
-void draw_large_icon(GdkWindow *window,
-		     GtkStyle *style,
-		     GdkRectangle *area,
-		     DirItem  *item,
-		     MaskedPixmap *image,
-		     gboolean selected,
-		     GdkColor *color);
 gboolean display_is_truncated(FilerWindow *filer_window, int i);
 void display_change_size(FilerWindow *filer_window, gboolean bigger);
 
@@ -74,11 +68,13 @@ void display_update_view(FilerWindow *filer_window,
 void display_update_views(FilerWindow *filer_window);
 void draw_small_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
 		     DirItem  *item, MaskedPixmap *image, gboolean selected,
-		     GdkColor *color);
+		     GdkColor *color, gboolean flag);
+void draw_large_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
+		     DirItem  *item, MaskedPixmap *image, gboolean selected,
+		     GdkColor *color, gboolean flag);
 void draw_huge_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
-		    DirItem *item,
-			   MaskedPixmap *image, gboolean selected,
-			   GdkColor *color);
+		     DirItem  *item, MaskedPixmap *image, gboolean selected,
+		     GdkColor *color, gboolean flag);
 void display_set_actual_size(FilerWindow *filer_window, gboolean force_resize);
 void draw_emblem_on_icon(GdkWindow *window, GtkStyle   *style,
 				const char *stock_id,

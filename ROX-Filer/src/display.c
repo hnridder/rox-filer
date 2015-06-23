@@ -152,7 +152,7 @@ void draw_emblem_on_icon(GdkWindow *window, GtkStyle   *style,
  */
 void draw_huge_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
 		   DirItem  *item, MaskedPixmap *image, gboolean selected,
-		   GdkColor *color)
+		   GdkColor *color, gboolean flag)
 {
 	int		width, height;
 	int		image_x;
@@ -204,7 +204,7 @@ void draw_huge_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
 		draw_emblem_on_icon(window, style, ROX_STOCK_SYMLINK,
 				    &image_x, area->y + 2);
 	}
-	if ((item->flags & ITEM_FLAG_HAS_XATTR) && o_xattr_show.int_value)
+	if ((item->flags & ITEM_FLAG_HAS_XATTR) && o_xattr_show.int_value && !flag)
 	{
 		draw_emblem_on_icon(window, style, ROX_STOCK_XATTR,
 				    &image_x, area->y + 2);
@@ -214,13 +214,9 @@ void draw_huge_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
 /* Draw this icon (including any symlink or mount symbol) inside the
  * given rectangle.
  */
-void draw_large_icon(GdkWindow *window,
-		     GtkStyle *style,
-		     GdkRectangle *area,
-		     DirItem  *item,
-		     MaskedPixmap *image,
-		     gboolean selected,
-		     GdkColor *color)
+void draw_large_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
+		   DirItem  *item, MaskedPixmap *image, gboolean selected,
+		   GdkColor *color, gboolean flag)
 {
 	int	width;
 	int	height;
@@ -273,7 +269,7 @@ void draw_large_icon(GdkWindow *window,
 		draw_emblem_on_icon(window, style, ROX_STOCK_SYMLINK,
 				    &image_x, area->y + 2);
 	}
-	if ((item->flags & ITEM_FLAG_HAS_XATTR) && o_xattr_show.int_value)
+	if ((item->flags & ITEM_FLAG_HAS_XATTR) && o_xattr_show.int_value && !flag)
 	{
 		draw_emblem_on_icon(window, style, ROX_STOCK_XATTR,
 				    &image_x, area->y + 2);
@@ -282,7 +278,7 @@ void draw_large_icon(GdkWindow *window,
 
 void draw_small_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
 		     DirItem  *item, MaskedPixmap *image, gboolean selected,
-		     GdkColor *color)
+		     GdkColor *color, gboolean flag)
 {
 	int		width, height, image_x, image_y;
 	GdkPixbuf	*pixbuf, *tmp;
@@ -335,7 +331,7 @@ void draw_small_icon(GdkWindow *window, GtkStyle *style, GdkRectangle *area,
 		draw_emblem_on_icon(window, style, ROX_STOCK_SYMLINK,
 				    &image_x, area->y + 8);
 	}
-	if ((item->flags & ITEM_FLAG_HAS_XATTR) && o_xattr_show.int_value)
+	if ((item->flags & ITEM_FLAG_HAS_XATTR) && o_xattr_show.int_value && !flag)
 	{
 		draw_emblem_on_icon(window, style, ROX_STOCK_XATTR,
 				    &image_x, area->y + 8);
@@ -460,6 +456,37 @@ int sort_by_size(const void *item1, const void *item2)
 	return i1->size < i2->size ? -1 :
 		i1->size > i2->size ? 1 :
 		sort_by_name(item1, item2);
+}
+
+int sort_by_title(const void *item1, const void *item2)
+{
+	const DirItem *i1 = (DirItem *) item1;
+	const DirItem *i2 = (DirItem *) item2;
+	CollateKey *n1, *n2;
+	gchar *v1, *v2;
+	int retval;
+
+	if(i1->booktitle_collate) {
+		n1 = i1->booktitle_collate;
+		v1 = i1->booktitle;
+	} else {
+		n1 = i1->leafname_collate;
+		v1 = i1->leafname;
+	}
+
+	if(i2->booktitle_collate) {
+		n2 = i2->booktitle_collate;
+		v2 = i2->booktitle;
+	} else {
+		n2 = i2->leafname_collate;
+		v2 = i2->leafname;
+	}
+
+	SORT_DIRS;
+
+	retval = collate_key_cmp(n1, n2, o_display_caps_first.int_value);
+
+	return retval ? retval : strcmp(v1, v2);
 }
 
 void display_set_sort_type(FilerWindow *filer_window, SortType sort_type,
@@ -724,7 +751,45 @@ static char *details(FilerWindow *filer_window, DirItem *item)
 	}
 	else if (filer_window->details_type == DETAILS_LIBRARY)
 	{
-		buf = g_strdup_printf("Hola!");
+		const gchar *path = make_path(filer_window->real_path, item->leafname);
+		gchar *author = xattr_get(path, "user.book.author", NULL);
+		gchar *publisher = xattr_get(path, "user.book.publisher", NULL);
+		gchar *year = xattr_get(path, "user.book.year", NULL);
+		gchar *tmp;
+		const gchar *sep;
+
+		if(filer_window->display_style == SMALL_ICONS)
+			sep = " - ";
+		else
+			sep = "\n";
+
+		if(!author)
+			buf = g_strdup_printf("%s","");
+		else {
+			tmp = g_markup_escape_text(author,-1);
+			g_free(author);
+			author = tmp;
+			if(!publisher && !year) {
+				buf = g_strdup(author);
+			} else if(publisher && !year) {
+				tmp = g_markup_escape_text(publisher,-1);
+				g_free(publisher);
+				publisher = tmp;
+				buf = g_strdup_printf("%s%s<i>%s</i>",author,sep,publisher);
+				g_free(publisher);
+			} else if(!publisher && year) {
+				buf = g_strdup_printf("%s%s<i>(%s)</i>",author,sep,year);
+				g_free(year);
+			} else {
+				tmp = g_markup_escape_text(publisher,-1);
+				g_free(publisher);
+				publisher = tmp;
+				buf = g_strdup_printf("%s%s<i>%s (%s)</i>",author,sep,publisher,year);
+				g_free(publisher);
+				g_free(year);
+			}
+			g_free(author);
+		}	
 	}
 	else
 	{
@@ -792,33 +857,50 @@ void display_update_view(FilerWindow *filer_window,
 	if (str)
 	{
 		PangoAttrList	*details_list;
-		int	perm_offset = -1;
-		
-		view->details = gtk_widget_create_pango_layout(
-					filer_window->window, str);
-		g_free(str);
+		if(filer_window->view_type != VIEW_TYPE_LIBRARY) {
+			int	perm_offset = -1;
+			
+			view->details = gtk_widget_create_pango_layout(
+						filer_window->window, str);
+			g_free(str);
 
-		pango_layout_set_font_description(view->details, monospace);
-		pango_layout_get_size(view->details, &w, &h);
-		view->details_width = w / PANGO_SCALE;
-		view->details_height = h / PANGO_SCALE;
+			pango_layout_set_font_description(view->details, monospace);
+			pango_layout_get_size(view->details, &w, &h);
+			view->details_width = w / PANGO_SCALE;
+			view->details_height = h / PANGO_SCALE;
 
-		if (filer_window->details_type == DETAILS_PERMISSIONS)
-			perm_offset = 0;
-		if (perm_offset > -1)
-		{
-			PangoAttribute	*attr;
+			if (filer_window->details_type == DETAILS_PERMISSIONS)
+				perm_offset = 0;
+			if (perm_offset > -1)
+			{
+				PangoAttribute	*attr;
 
-			attr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+				attr = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
 
-			perm_offset += 4 * applicable(item->uid, item->gid);
-			attr->start_index = perm_offset;
-			attr->end_index = perm_offset + 3;
+				perm_offset += 4 * applicable(item->uid, item->gid);
+				attr->start_index = perm_offset;
+				attr->end_index = perm_offset + 3;
 
-			details_list = pango_attr_list_new();
-			pango_attr_list_insert(details_list, attr);
-			pango_layout_set_attributes(view->details,
-							details_list);
+				details_list = pango_attr_list_new();
+				pango_attr_list_insert(details_list, attr);
+				pango_layout_set_attributes(view->details,
+								details_list);
+			}
+		} else {
+			gchar	*text;
+			if(pango_parse_markup(str,-1,0,&details_list,&text,NULL,NULL)) {
+				view->details = gtk_widget_create_pango_layout(
+						filer_window->window, text);
+				g_free(text);
+
+				pango_layout_set_font_description(view->details, monospace);
+				pango_layout_get_size(view->details, &w, &h);
+				view->details_width = w / PANGO_SCALE;
+				view->details_height = h / PANGO_SCALE;
+
+				pango_layout_set_attributes(view->details,
+						details_list);
+			}
 		}
 	}
 
@@ -841,7 +923,11 @@ void display_update_view(FilerWindow *filer_window,
 
 	if (!view->image)
 	{
-		view->image = di_image(item);
+		if(filer_window->view_type == VIEW_TYPE_LIBRARY && (item->flags & ITEM_FLAG_IS_BOOK)) {
+			view->image = im_book;
+			g_object_ref(im_book);
+		} else
+			view->image = di_image(item);
 		if (view->image)
 			g_object_ref(view->image);
 	}
@@ -856,30 +942,55 @@ void display_update_view(FilerWindow *filer_window,
 	{
 		/* Do nothing */
 	}
-	else if (g_utf8_validate(item->leafname, -1, NULL))
-	{
-		view->layout = gtk_widget_create_pango_layout(
-				filer_window->window, item->leafname);
-		pango_layout_set_auto_dir(view->layout, FALSE);
-	}
 	else
 	{
-		PangoAttribute	*attr;
-		gchar *utf8;
+		if(filer_window->view_type == VIEW_TYPE_LIBRARY)
+		{
+			const guchar *path = make_path(filer_window->real_path, item->leafname);
+			guchar *title = xattr_get(path, "user.book.title", NULL);
+			PangoAttribute	*attr;
+			if(title) {
+				view->layout = gtk_widget_create_pango_layout(
+					filer_window->window, title);
+				attr = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
+				attr->start_index = 0;
+				attr->end_index = -1;
+				if (!list)
+					list = pango_attr_list_new();
+				pango_attr_list_insert(list, attr);
+			} else
+				view->layout = gtk_widget_create_pango_layout(
+						filer_window->window, item->leafname);
+			pango_layout_set_auto_dir(view->layout, FALSE);
+		}
+		else
+		{
+			if (g_utf8_validate(item->leafname, -1, NULL))
+			{
+				view->layout = gtk_widget_create_pango_layout(
+						filer_window->window, item->leafname);
+				pango_layout_set_auto_dir(view->layout, FALSE);
+			}
+			else
+			{
+				PangoAttribute	*attr;
+				gchar *utf8;
 
-		utf8 = to_utf8(item->leafname);
-		view->layout = gtk_widget_create_pango_layout(
-				filer_window->window, utf8);
-		g_free(utf8);
+				utf8 = to_utf8(item->leafname);
+				view->layout = gtk_widget_create_pango_layout(
+						filer_window->window, utf8);
+				g_free(utf8);
 
-		attr = pango_attr_foreground_new(0xffff, 0, 0);
-		attr->start_index = 0;
-		attr->end_index = -1;
-		if (!list)
-			list = pango_attr_list_new();
-		pango_attr_list_insert(list, attr);
+				attr = pango_attr_foreground_new(0xffff, 0, 0);
+				attr->start_index = 0;
+				attr->end_index = -1;
+				if (!list)
+					list = pango_attr_list_new();
+				pango_attr_list_insert(list, attr);
+			}
+		}
 	}
-
+	
 	if (item->flags & ITEM_FLAG_RECENT)
 	{
 		PangoAttribute	*attr;

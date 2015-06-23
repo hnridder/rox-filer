@@ -143,7 +143,8 @@ typedef enum {		/* Values used in options */
 	SORT_DATE = 2,
 	SORT_SIZE = 3,
 	SORT_OWNER = 4,
-	SORT_GROUP = 5
+	SORT_GROUP = 5,
+	SORT_TITLE = 6
 } SortType;
 
 /* Each DirItem has a base type with indicates what kind of object it is.

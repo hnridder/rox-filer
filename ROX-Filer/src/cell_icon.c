@@ -331,19 +331,19 @@ static void cell_icon_render(GtkCellRenderer    *cell,
 			area.width = MIN(area.width, SMALL_WIDTH);
 			area.x = cell_area->x + cell_area->width - area.width;
 			draw_small_icon(window, widget->style, &area, item,
-					view_item->image, selected, color);
+					view_item->image, selected, color, FALSE);
 
 			break;
 		}
 		case LARGE_ICONS:
 			draw_large_icon(window, widget->style, cell_area, item,
-					view_item->image, selected, color);
+					view_item->image, selected, color, FALSE);
 			break;
 		case HUGE_ICONS:
 			if (!di_image(item)->huge_pixbuf)
 				pixmap_make_huge(di_image(item));
 			draw_huge_icon(window, widget->style, cell_area, item,
-					view_item->image, selected, color);
+					view_item->image, selected, color, FALSE);
 			break;
 		default:
 			g_warning("Unknown size %d\n", size);

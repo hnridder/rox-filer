@@ -351,18 +351,21 @@ static void draw_item(GtkWidget *widget,
 			template.icon.height <= SMALL_HEIGHT)
 	{
 		draw_small_icon(widget->window, widget->style, &template.icon,
-				item, view->image, selected, color);
+				item, view->image, selected, color,
+				filer_window->view_type == VIEW_TYPE_LIBRARY ? TRUE : FALSE);
 	}
 	else if (template.icon.width <= ICON_WIDTH &&
 			template.icon.height <= ICON_HEIGHT)
 	{
 		draw_large_icon(widget->window, widget->style, &template.icon,
-				item, view->image, selected, color);
+				item, view->image, selected, color,
+				filer_window->view_type == VIEW_TYPE_LIBRARY ? TRUE : FALSE);
 	}
 	else
 	{
 		draw_huge_icon(widget->window, widget->style, &template.icon,
-				item, view->image, selected, color);
+				item, view->image, selected, color,
+				filer_window->view_type == VIEW_TYPE_LIBRARY ? TRUE : FALSE);
 	}
 	
 	draw_string(widget, view->layout,
@@ -1036,6 +1039,7 @@ static SortFn sort_fn(FilerWindow *fw)
 		case SORT_SIZE: return sort_by_size;
 		case SORT_OWNER: return sort_by_owner;
 		case SORT_GROUP: return sort_by_group;
+		case SORT_TITLE: return sort_by_title;
 		default:
 			g_assert_not_reached();
 	}

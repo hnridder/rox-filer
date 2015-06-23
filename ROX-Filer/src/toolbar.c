@@ -86,6 +86,8 @@ static void toolbar_hidden_clicked(GtkWidget *widget,
 					FilerWindow *filer_window);
 static void toolbar_dirs_clicked(GtkWidget* widget,
 					FilerWindow *filer_window);
+static void toolbar_lib_clicked(GtkWidget* widget,
+					FilerWindow *filer_window);
 static void toolbar_select_clicked(GtkWidget *widget,
 				   FilerWindow *filer_window);
 static void toolbar_sort_clicked(GtkWidget *widget,
@@ -158,6 +160,9 @@ static Tool all_tools[] = {
 										 "Right: Show files only"),
 	toolbar_dirs_clicked, DROP_NONE, FALSE,
 	FALSE},
+
+	{N_("Library"), ROX_STOCK_LIBRARY, N_("Switch to library view"),
+	toolbar_lib_clicked, DROP_NONE, FALSE},
 	
 	{N_("Select"), ROX_STOCK_SELECT, N_("Select all/invert selection"),
 	 toolbar_select_clicked, DROP_NONE, FALSE,
@@ -540,6 +545,26 @@ static void toolbar_dirs_clicked(GtkWidget *widget,
 		display_update_hidden(filer_window);
 	}
 	gdk_event_free(event);
+}
+
+static void toolbar_lib_clicked(GtkWidget *widget,
+		FilerWindow *filer_window)
+{
+	if(filer_window->view_type != VIEW_TYPE_LIBRARY) {
+		display_set_sort_type(filer_window, SORT_TITLE,
+				GTK_SORT_ASCENDING);
+		display_set_layout(filer_window,
+				filer_window->display_style_wanted,
+				DETAILS_LIBRARY, FALSE);
+		filer_set_view_type(filer_window, VIEW_TYPE_LIBRARY);
+	} else {
+		display_set_sort_type(filer_window,
+				o_display_sort_by.int_value, GTK_SORT_ASCENDING);
+		display_set_layout(filer_window,
+				filer_window->display_style_wanted,
+				DETAILS_NONE, FALSE);
+		filer_set_view_type(filer_window, VIEW_TYPE_COLLECTION);
+	}
 }
 
 static gboolean invert_cb(ViewIter *iter, gpointer data)

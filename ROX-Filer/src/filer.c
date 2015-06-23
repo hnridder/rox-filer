@@ -2108,7 +2108,8 @@ void filer_set_title(FilerWindow *filer_window)
 	if (filer_window->scanning ||
 	    filer_window->filter != FILER_SHOW_ALL ||
 	    filer_window->show_hidden || filer_window->show_thumbs ||
-		filer_window->dirs_only || filer_window->files_only)
+		filer_window->dirs_only || filer_window->files_only ||
+		filer_window->view_type == VIEW_TYPE_LIBRARY)
 	{
 		if (o_short_flag_names.int_value)
 		{
@@ -2128,6 +2129,7 @@ void filer_set_title(FilerWindow *filer_window)
 				filer_window->show_thumbs ? _("T") : "",
 				filer_window->dirs_only ? _("D") : "",
 				filer_window->files_only ? _("F") : "",
+				filer_window->view_type == VIEW_TYPE_LIBRARY ? _("L") : "",
 				NULL);
 		}
 		else
@@ -2153,6 +2155,7 @@ void filer_set_title(FilerWindow *filer_window)
 				filer_window->show_thumbs ? _("Thumbs, ") : "",
 				filer_window->dirs_only ? _("Dirs only, ") : "",
 				filer_window->files_only ? _("Files only, ") : "",
+				filer_window->view_type == VIEW_TYPE_LIBRARY ? _("Library, ") : "",
 				NULL);
 			flags[strlen(flags) - 2] = ')';
 			g_free(hidden);
