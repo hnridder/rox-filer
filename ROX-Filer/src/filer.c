@@ -59,6 +59,7 @@
 #include "mount.h"
 #include "xml.h"
 #include "view_iface.h"
+#include "collection.h"
 #include "view_collection.h"
 #include "view_details.h"
 #include "action.h"
@@ -504,6 +505,9 @@ static void attach(FilerWindow *filer_window)
 static void detach(FilerWindow *filer_window)
 {
 	g_return_if_fail(filer_window->directory != NULL);
+
+	if (filer_window->mini_type == MINI_EASY_SELECT)
+		minibuffer_hide(filer_window);
 
 	dir_detach(filer_window->directory,
 			(DirCallback) update_display, filer_window);
@@ -1220,6 +1224,7 @@ gint filer_key_press_event(GtkWidget	*widget,
 	ViewIter cursor;
 	GtkWidget *focus = GTK_WINDOW(widget)->focus_widget;
 	guint key = event->keyval;
+	GdkModifierType modifiers = gtk_accelerator_get_default_mod_mask();
 	char group[2] = "1";
 
 	window_with_focus = filer_window;
@@ -1287,6 +1292,12 @@ gint filer_key_press_event(GtkWidget	*widget,
 				group[0] = key - GDK_0 + '0';
 			else if (key >= GDK_KP_0 && key <= GDK_KP_9)
 				group[0] = key - GDK_KP_0 + '0';
+			else if (!(event->state & modifiers) &&
+					key >= GDK_a && key <= GDK_z)
+			{
+				minibuffer_show(filer_window, MINI_EASY_SELECT, key);
+				return TRUE;
+			}
 			else
 			{
 				if (focus && focus != widget &&
@@ -1297,10 +1308,12 @@ gint filer_key_press_event(GtkWidget	*widget,
 				return FALSE;
 			}
 
-			if (event->state & GDK_CONTROL_MASK)
+			if ((event->state & modifiers) == GDK_CONTROL_MASK)
 				group_save(filer_window, group);
-			else
+			else if (!(event->state & modifiers))
 				group_restore(filer_window, group);
+			else
+				return FALSE;
 	}
 
 	return TRUE;
@@ -2052,7 +2065,7 @@ void filer_close_recursive(const char *path)
 static gboolean minibuffer_show_cb(FilerWindow *filer_window)
 {
 	if (filer_exists(filer_window))
-		minibuffer_show(filer_window, MINI_PATH);
+		minibuffer_show(filer_window, MINI_PATH, 0);
 	return FALSE;
 }
 
@@ -2660,6 +2673,9 @@ void filer_perform_action(FilerWindow *filer_window, GdkEventButton *event)
 			g_warning("Unsupported action : %d\n", action);
 			break;
 	}
+
+	if (filer_window->mini_type == MINI_EASY_SELECT)
+		minibuffer_hide(filer_window);
 }
 
 /* It's time to make the tooltip appear. If we're not over the item any

@@ -22,6 +22,7 @@
 #include "config.h"
 
 #include <fnmatch.h>
+#include <regex.h>
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
@@ -48,6 +49,8 @@
 #include "diritem.h"
 #include "type.h"
 #include "view_iface.h"
+#include "collection.h"
+#include "view_collection.h"
 
 static GList *shell_history = NULL;
 
@@ -67,6 +70,7 @@ static const gchar *mini_contents(FilerWindow *filer_window);
 static void show_help(FilerWindow *filer_window);
 static gboolean grab_focus(GtkWidget *minibuffer);
 static gboolean select_if_glob(ViewIter *iter, gpointer data);
+static void view_select_if_reg(ViewIface *obj, const gchar *pattern);
 
 /****************************************************************
  *			EXTERNAL INTERFACE			*
@@ -112,7 +116,7 @@ void create_minibuffer(FilerWindow *filer_window)
 	filer_window->minibuffer_area = hbox;
 }
 
-void minibuffer_show(FilerWindow *filer_window, MiniType mini_type)
+void minibuffer_show(FilerWindow *filer_window, MiniType mini_type, guint keyval)
 {
 	GtkEntry	*mini;
 	int		pos = -1;
@@ -131,6 +135,7 @@ void minibuffer_show(FilerWindow *filer_window, MiniType mini_type)
 			mini_type == MINI_SELECT_IF ? _("Select If:") :
 			mini_type == MINI_SELECT_BY_NAME ? _("Select Named:") :
 			mini_type == MINI_FILTER ? _("Pattern:") :
+			mini_type == MINI_EASY_SELECT ? _("Easy Select:") :
 			"?");
 
 	switch (mini_type)
@@ -193,6 +198,24 @@ void minibuffer_show(FilerWindow *filer_window, MiniType mini_type)
 			filer_window->mini_cursor_base = -1;	/* History */
 			break;
 		}
+		case MINI_EASY_SELECT:
+		{
+			view_show_cursor(filer_window->view);
+			view_get_cursor(filer_window->view, &cursor);
+			view_set_base(filer_window->view, &cursor);
+
+			filer_window->mini_cursor_base = -1; /* History */
+
+			gchar it[2] = {keyval? : '^', '\0'};
+			gtk_entry_set_text(mini, it);
+			view_select_if_reg(filer_window->view, it);
+			ViewIter iter;
+			view_get_iter(filer_window->view, &iter,
+					VIEW_ITER_FROM_BASE | VIEW_ITER_SELECTED);
+			if (iter.next(&iter))
+				view_cursor_to_iter(filer_window->view, &iter);
+			break;
+		}
 		default:
 			g_warning("Bad minibuffer type\n");
 			return;
@@ -209,6 +232,8 @@ void minibuffer_show(FilerWindow *filer_window, MiniType mini_type)
 
 void minibuffer_hide(FilerWindow *filer_window)
 {
+	if (filer_window->mini_type == MINI_NONE) return;
+
 	filer_window->mini_type = MINI_NONE;
 
 	gtk_widget_hide(filer_window->minibuffer_area);
@@ -292,6 +317,14 @@ static void show_help(FilerWindow *filer_window)
 				_("Enter a pattern to match for files to "
 				"be shown.  An empty filter turns the "
 				  "filter off."));
+			break;
+		case MINI_EASY_SELECT:
+			info_message(
+					_("Enter a file name pattern to select all matching files:\n\n"
+						". means any character\n"
+						".* means zero or more characters\n"
+						"[a-z] means any character from a to z\n"
+						"\\.png$ means any name ending in '.png'"));
 			break;
 		default:
 			g_warning("Unknown minibuffer type!");
@@ -1053,14 +1086,42 @@ static gint key_press_event(GtkWidget	*widget,
 					return FALSE;
 			}
 			break;
-
-	        case MINI_FILTER:
+		case MINI_FILTER:
 			switch (event->keyval)
 			{
 				case GDK_Return:
 				case GDK_KP_Enter:
 					filter_return_pressed(filer_window,
 								event->time);
+					break;
+				default:
+					return FALSE;
+			}
+			break;
+		case MINI_EASY_SELECT:
+			switch (event->keyval)
+			{
+				case GDK_Page_Up:
+				case GDK_Page_Down:
+					if (filer_window->view_type == VIEW_TYPE_COLLECTION)
+						gtk_widget_event(GTK_WIDGET(
+									VIEW_COLLECTION(filer_window->view)->collection),
+								(GdkEvent *) event);
+					else {
+						gtk_widget_event(GTK_WIDGET(filer_window->view),
+								(GdkEvent *) event);
+						gtk_widget_grab_focus(filer_window->minibuffer);
+					}
+					return TRUE;
+				case GDK_Up:
+					filer_next_selected(filer_window, -1);
+					break;
+				case GDK_Down:
+					filer_next_selected(filer_window, 1);
+					break;
+				case GDK_Return:
+				case GDK_KP_Enter:
+					minibuffer_hide(filer_window);
 					break;
 				default:
 					return FALSE;
@@ -1084,6 +1145,31 @@ static gboolean select_if_glob(ViewIter *iter, gpointer data)
 	return fnmatch(pattern, item->leafname, 0) == 0;
 }
 
+static gboolean select_if_reg_cb(ViewIter *iter, gpointer exp)
+{
+	DirItem *item;
+
+	item = iter->peek(iter);
+	g_return_val_if_fail(item != NULL, FALSE);
+
+	return regexec((regex_t *) exp, (item->title) ? item->title : item->leafname, 0, NULL, 0) == 0;
+}
+
+static void view_select_if_reg(ViewIface *obj, const gchar *pattern)
+{
+	regex_t exp;
+
+	if (strlen(pattern) == 0 || strcmp(pattern, "^") == 0 ||
+			regcomp(&exp, pattern, REG_EXTENDED | REG_ICASE) != 0)
+
+		view_clear_selection(obj);
+	else	
+	{
+		view_select_if(obj, select_if_reg_cb, (gpointer) &exp);
+		regfree(&exp);
+	}
+}
+
 static void changed(GtkEditable *mini, FilerWindow *filer_window)
 {
 	ViewIter	iter;
@@ -1103,6 +1189,15 @@ static void changed(GtkEditable *mini, FilerWindow *filer_window)
 					select_if_glob,
 					(gpointer) gtk_entry_get_text(
 					      GTK_ENTRY(filer_window->minibuffer)));
+			view_get_iter(filer_window->view, &iter,
+					VIEW_ITER_FROM_BASE | VIEW_ITER_SELECTED);
+			if (iter.next(&iter))
+				view_cursor_to_iter(filer_window->view, &iter);
+			return;
+		case MINI_EASY_SELECT:
+			view_select_if_reg(filer_window->view,
+					gtk_entry_get_text(
+						GTK_ENTRY(filer_window->minibuffer)));
 			view_get_iter(filer_window->view, &iter,
 					VIEW_ITER_FROM_BASE | VIEW_ITER_SELECTED);
 			if (iter.next(&iter))
