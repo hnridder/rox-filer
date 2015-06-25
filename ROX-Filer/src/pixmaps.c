@@ -967,8 +967,8 @@ static void load_default_pixmaps(void)
 	im_dirs = load_pixmap("dirs");
 	im_appdir = load_pixmap("application");
 
-	im_book = load_pixmap("book");
-	im_article = load_pixmap("article");
+	im_book = load_pixmap("media-book");
+	im_article = load_pixmap("media-article");
 
 	pixbuf = gdk_pixbuf_new_from_file(
 			make_path(app_dir, ".DirIcon"), &error);
