@@ -826,7 +826,10 @@ void show_filer_menu(FilerWindow *filer_window, GdkEvent *event, ViewIter *iter)
 				 xattr_supported(filer_window->real_path));
 #if defined(HAVE_GETXATTR) || defined(HAVE_ATTROPEN)
 	gtk_widget_set_sensitive(filer_xattrs,
-				 xattr_supported(filer_window->real_path) && n_selected <= 1);
+				xattr_supported(filer_window->real_path) &&
+				n_selected <= 1 &&
+				access(make_path(filer_window->real_path,
+						file_item->leafname), R_OK) == 0);
 #endif
 
 	if (n_selected && o_menu_quick.int_value) 
@@ -2089,7 +2092,8 @@ static void file_op(gpointer data, FileOp action, GtkWidget *unused)
 			break;
 #if defined(HAVE_GETXATTR) || defined(HAVE_ATTROPEN)
 		case FILE_XATTRS:
-			xattrs_browser(item, path);
+			if(item->mode & S_IRUSR)
+				xattrs_browser(item, path);
 			break;
 #endif
 		default:
