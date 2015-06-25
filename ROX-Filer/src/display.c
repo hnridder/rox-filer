@@ -756,15 +756,9 @@ static char *details(FilerWindow *filer_window, DirItem *item)
 		gchar *tmp;
 		const gchar *sep;
 
-		if(item->flags & ITEM_FLAG_IS_BOOK) {
-			author = xattr_get(path, "user.book.author", NULL);
-			pub = xattr_get(path, "user.book.publisher", NULL);
-			year = xattr_get(path, "user.book.year", NULL);
-		} else if(item->flags & ITEM_FLAG_IS_ARTICLE) {
-			author = xattr_get(path, "user.article.author", NULL);
-			pub = xattr_get(path, "user.article.journal", NULL);
-			year = xattr_get(path, "user.article.year", NULL);
-		}
+		author = xattr_get(path, "user.media.author", NULL);
+		pub = xattr_get(path, "user.media.pub", NULL);
+		year = xattr_get(path, "user.media.date", NULL);
 
 		if(filer_window->display_style == SMALL_ICONS)
 			sep = " - ";
@@ -851,6 +845,7 @@ void display_update_view(FilerWindow *filer_window,
 	char	*str;
 	static PangoFontDescription *monospace = NULL;
 	PangoAttrList *list = NULL;
+	const guchar    *path;
 
 	if (!monospace)
 		monospace = pango_font_description_from_string("monospace");
@@ -921,8 +916,6 @@ void display_update_view(FilerWindow *filer_window,
 	if (filer_window->show_thumbs && item->base_type == TYPE_FILE /*&&
 									strcmp(item->mime_type->media_type, "image") == 0*/)
 	{
-		const guchar    *path;
-
 		path = make_path(filer_window->real_path, item->leafname);
 
 		view->image = g_fscache_lookup_full(pixmap_cache, path,
@@ -931,10 +924,13 @@ void display_update_view(FilerWindow *filer_window,
 
 	if (!view->image)
 	{
-		if(filer_window->view_type == VIEW_TYPE_LIBRARY && (item->flags & ITEM_FLAG_IS_BOOK)) {
+		path = make_path(filer_window->real_path, item->leafname);
+		if(filer_window->view_type == VIEW_TYPE_LIBRARY &&
+			   xattrcmp(path,"user.media.type","book")) {
 			view->image = im_book;
 			g_object_ref(im_book);
-		} else if(filer_window->view_type == VIEW_TYPE_LIBRARY && (item->flags & ITEM_FLAG_IS_ARTICLE)) {
+		} else if(filer_window->view_type == VIEW_TYPE_LIBRARY &&
+			   xattrcmp(path,"user.media.type","article")) {
 			view->image = im_article;
 			g_object_ref(im_article);
 		}

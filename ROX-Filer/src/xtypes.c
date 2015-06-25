@@ -353,11 +353,11 @@ int xattr_rem(const char *path, const char *attr)
 }
 #endif
 
-MIME_type *xtype_get(const char *path)
+MIME_type *xtype_get(const gchar *path)
 {
 	MIME_type *type = NULL;
 	gchar *buf;
-	char *nl;
+	gchar *nl;
 
 	buf = xattr_get(path, XATTR_MIME_TYPE, NULL);
 
@@ -372,9 +372,9 @@ MIME_type *xtype_get(const char *path)
 	return type;
 }
 
-int xtype_set(const char *path, const MIME_type *type)
+gint xtype_set(const gchar *path, const MIME_type *type)
 {
-	int res;
+	gint res;
 	gchar *ttext;
 
 	if(o_xattr_ignore.int_value)
@@ -391,11 +391,11 @@ int xtype_set(const char *path, const MIME_type *type)
 }
 
 /* Label support */
-GdkColor *xlabel_get(const char *path)
+GdkColor *xlabel_get(const gchar *path)
 {
 	GdkColor *col = NULL;
 	gchar *buf;
-	char *nl;
+	gchar *nl;
 
 	buf = xattr_get(path, XATTR_LABEL, NULL);
 
@@ -412,6 +412,17 @@ GdkColor *xlabel_get(const char *path)
 		g_free(buf);
 	}
 	return col;
+}
+
+/* Compare string values of extended attributes */
+gboolean xattrcmp(const gchar *path, const gchar *attr, const gchar *val)
+{
+	gchar *actual = xattr_get(path, attr, NULL);
+
+	if(actual && g_strcmp0(actual,val) == 0)
+		return TRUE;
+	else
+		return FALSE;
 }
 
 /* Extended attributes browser */
@@ -441,7 +452,7 @@ typedef struct
 }
 XAttr;
 
-GArray* xattr_list(const char *path)
+GArray* xattr_list(const gchar *path)
 {
 	ssize_t len;
 	gchar 	*list;

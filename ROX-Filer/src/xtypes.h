@@ -25,19 +25,22 @@ int xattr_supported(const char *path);
 int xattr_have(const char *path);
 gchar *xattr_get(const char *path, const char *attr, int *len);
 int xattr_set(const char *path, const char *attr,
-	      const char *value, int value_len);
+	    const char *value, int value_len);
 int xattr_rem(const char *path,
 		const char *attr);
 
-MIME_type *xtype_get(const char *path);
-int xtype_set(const char *path, const MIME_type *type);
+MIME_type *xtype_get(const gchar *path);
+gint xtype_set(const char *path, const MIME_type *type);
+
+gboolean xattrcmp(const gchar *path, const gchar *attr,
+		const gchar *val);
 
 /* Label support */
 GdkColor *xlabel_get(const char *);
 
 /* Xattr browser */
 void xattrs_browser(DirItem *, const guchar *);
-GArray* xattr_list(const char *);
+GArray* xattr_list(const gchar *);
 GArray* copy_array(GArray *);
 GArray* compare_arrays(GArray *,GArray *);
 

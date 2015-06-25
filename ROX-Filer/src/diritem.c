@@ -110,13 +110,9 @@ void diritem_restat(const guchar *path, DirItem *item, struct stat *parent)
 
 		item->label = xlabel_get(path);
 
-		if (xattr_get(path, "user.book", NULL)) {
-			item->flags |= ITEM_FLAG_IS_BOOK;
-			item->title = xattr_get(path, "user.book.title", NULL);
-			item->title_collate = collate_key_new(item->title);
-		} else if (xattr_get(path, "user.article", NULL)) {
-			item->flags |= ITEM_FLAG_IS_ARTICLE;
-			item->title = xattr_get(path, "user.article.title", NULL);
+		if (xattr_get(path, "user.media.type", NULL)) {
+			item->flags |= ITEM_FLAG_IS_MEDIA;
+			item->title = xattr_get(path, "user.media.title", NULL);
 			item->title_collate = collate_key_new(item->title);
 		}
 
