@@ -482,8 +482,6 @@ int sort_by_title(const void *item1, const void *item2)
 		v2 = i2->leafname;
 	}
 
-	SORT_DIRS;
-
 	retval = collate_key_cmp(n1, n2, o_display_caps_first.int_value);
 
 	return retval ? retval : strcmp(v1, v2);
