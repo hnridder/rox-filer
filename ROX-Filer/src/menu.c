@@ -2092,7 +2092,7 @@ static void file_op(gpointer data, FileOp action, GtkWidget *unused)
 			break;
 #if defined(HAVE_GETXATTR) || defined(HAVE_ATTROPEN)
 		case FILE_XATTRS:
-			if(item->mode & S_IRUSR)
+			if(access(path, R_OK) == 0)
 				xattrs_browser(item, path);
 			break;
 #endif
