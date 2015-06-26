@@ -925,7 +925,8 @@ void display_update_view(FilerWindow *filer_window,
 	if (!view->image)
 	{
 		path = make_path(filer_window->real_path, item->leafname);
-		if(filer_window->view_type == VIEW_TYPE_LIBRARY) {
+		if(filer_window->view_type == VIEW_TYPE_LIBRARY &&
+				(item->flags & ITEM_FLAG_IS_MEDIA)) {
 			if(xattrcmp(path,"user.media.type","book")) {
 				view->image = im_book;
 				g_object_ref(im_book);
