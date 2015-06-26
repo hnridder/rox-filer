@@ -925,14 +925,17 @@ void display_update_view(FilerWindow *filer_window,
 	if (!view->image)
 	{
 		path = make_path(filer_window->real_path, item->leafname);
-		if(filer_window->view_type == VIEW_TYPE_LIBRARY &&
-			   xattrcmp(path,"user.media.type","book")) {
-			view->image = im_book;
-			g_object_ref(im_book);
-		} else if(filer_window->view_type == VIEW_TYPE_LIBRARY &&
-			   xattrcmp(path,"user.media.type","article")) {
-			view->image = im_article;
-			g_object_ref(im_article);
+		if(filer_window->view_type == VIEW_TYPE_LIBRARY) {
+			if(xattrcmp(path,"user.media.type","book")) {
+				view->image = im_book;
+				g_object_ref(im_book);
+			} else if(xattrcmp(path,"user.media.type","article")) {
+				view->image = im_article;
+				g_object_ref(im_article);
+			} else if(xattrcmp(path,"user.media.type","movie")) {
+				view->image = im_movie;
+				g_object_ref(im_movie);
+			}
 		}
 		else
 			view->image = di_image(item);
