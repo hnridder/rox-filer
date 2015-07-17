@@ -86,6 +86,8 @@ MaskedPixmap *im_dirs;
 MaskedPixmap *im_book;
 MaskedPixmap *im_article;
 MaskedPixmap *im_movie;
+MaskedPixmap *im_issue;
+MaskedPixmap *im_report;
 
 GtkIconSize mount_icon_size = -1;
 
@@ -973,6 +975,8 @@ static void load_default_pixmaps(void)
 	im_book = load_pixmap("media-book");
 	im_article = load_pixmap("media-article");
 	im_movie = load_pixmap("media-movie");
+	im_issue = load_pixmap("media-issue");
+	im_report = load_pixmap("media-report");
 
 	pixbuf = gdk_pixbuf_new_from_file(
 			make_path(app_dir, ".DirIcon"), &error);

@@ -934,6 +934,12 @@ void display_update_view(FilerWindow *filer_window,
 			} else if(xattrcmp(path,"user.media.type","movie")) {
 				view->image = im_movie;
 				g_object_ref(im_movie);
+			} else if(xattrcmp(path,"user.media.type","issue")) {
+				view->image = im_issue;
+				g_object_ref(im_issue);
+			} else if(xattrcmp(path,"user.media.type","report")) {
+				view->image = im_report;
+				g_object_ref(im_report);
 			}
 		}
 		else
