@@ -943,6 +943,9 @@ void display_update_view(FilerWindow *filer_window,
 			} else if(xattrcmp(path,"user.media.type","slides")) {
 				view->image = im_slides;
 				g_object_ref(im_slides);
+			} else if(xattrcmp(path,"user.media.type","thesis")) {
+				view->image = im_thesis;
+				g_object_ref(im_thesis);
 			}
 		}
 		else
