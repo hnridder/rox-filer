@@ -973,6 +973,8 @@ void display_update_view(FilerWindow *filer_window,
 			if(item->title) {
 				view->layout = gtk_widget_create_pango_layout(
 					filer_window->window, item->title);
+				pango_layout_set_width(view->layout,500*PANGO_SCALE); /*500px*/
+				pango_layout_set_ellipsize(view->layout,PANGO_ELLIPSIZE_END);
 				attr = pango_attr_weight_new(PANGO_WEIGHT_BOLD);
 				attr->start_index = 0;
 				attr->end_index = -1;

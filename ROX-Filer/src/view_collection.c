@@ -726,8 +726,9 @@ static void view_collection_extend_tip(ViewIface *view, ViewIter *iter,
 	g_return_if_fail(i >= 0 && i < collection->number_of_items);
 
 	/* TODO: What if the window is narrower than 1 column? */
-	if (filer_window->display_style == LARGE_ICONS ||
-	    filer_window->display_style == HUGE_ICONS)
+	if ((filer_window->display_style == LARGE_ICONS ||
+	    filer_window->display_style == HUGE_ICONS) &&
+			filer_window->view_type != VIEW_TYPE_LIBRARY)
 		return;		/* These wrap rather than truncate */
 
 	area.x = col * collection->item_width;
@@ -747,6 +748,15 @@ static void view_collection_extend_tip(ViewIface *view, ViewIter *iter,
 
 		g_string_append(tip, item->leafname);
 		g_string_append_c(tip, '\n');
+	}
+	else if (filer_window->view_type == VIEW_TYPE_LIBRARY)
+	{
+		DirItem *item = (DirItem *) collection->items[i].data;
+
+		if(item->title) {
+			g_string_append(tip, item->title);
+			g_string_append_c(tip, '\n');
+		}
 	}
 }
 
