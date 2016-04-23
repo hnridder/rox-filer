@@ -239,7 +239,11 @@ void show_condition_help(gpointer data)
 #if defined(HAVE_GETXATTR) || defined(HAVE_ATTROPEN)
 "<b>prune</b> (false, and prevents searching the contents of a directory)\n"
 "<b>label '<i>color</i>'</b> (true if user.label matches <i>color</i> as a color)\n"
-"<b>xattr '<i>attr</i>'</b> (true if file has non-empty extended attribute <i>attr</i>)."));
+"<b>xattr '<i>attr</i>'</b> (true if file has non-empty extended attribute <i>attr</i>)\n"
+"<b>xmtype '<i>type</i>'</b> (true if file has matching user.media.type attribute)\n"
+"<b>xmauth '<i>author</i>'</b> (true if file has matching user.media.author attribute)\n"
+"<b>xmpub '<i>publisher</i>'</b> (true if file has matching user.media.pub attribute)\n"
+"<b>xmdate '<i>date</i>'</b> (true if file has matching user.media.date attribute)."));
 #else
 "<b>prune</b> (false, and prevents searching the contents of a directory)."));
 #endif

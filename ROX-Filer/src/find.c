@@ -104,6 +104,10 @@ typedef enum {
 typedef enum {
 	X_ATTR,
 	X_LABEL,
+	X_MEDIA_TYPE,
+	X_MEDIA_AUTHOR,
+	X_MEDIA_PUB,
+	X_MEDIA_DATE,
 } XAttrType;
 #endif
 
@@ -412,7 +416,8 @@ static gboolean test_comp(FindCondition *condition, FindInfo *info)
 #if defined(HAVE_GETXATTR) || defined(HAVE_ATTROPEN)
 static gboolean test_xattr(FindCondition *condition, FindInfo *info) {
 	XAttrType type = GPOINTER_TO_INT(condition->data1);
-	char* value = condition->data2;
+	gchar* value = condition->data2;
+	gchar* actual = NULL;
 	GdkColor *col1,*col2 = NULL;
 
 	switch(type) {
@@ -431,6 +436,22 @@ static gboolean test_xattr(FindCondition *condition, FindInfo *info) {
 				}
 			} else
 				g_free(col2);
+			break;
+		case X_MEDIA_TYPE:
+			actual = xattr_get(info->fullpath,"user.media.type",NULL);
+			return (actual == NULL) ? FALSE : g_str_match_string(value,actual,TRUE);
+			break;
+		case X_MEDIA_AUTHOR:
+			actual = xattr_get(info->fullpath,"user.media.author",NULL);
+			return (actual == NULL) ? FALSE : g_str_match_string(value,actual,TRUE);
+			break;
+		case X_MEDIA_PUB:
+			actual = xattr_get(info->fullpath,"user.media.pub",NULL);
+			return (actual == NULL) ? FALSE : g_str_match_string(value,actual,TRUE);
+			break;
+		case X_MEDIA_DATE:
+			actual = xattr_get(info->fullpath,"user.media.date",NULL);
+			return (actual == NULL) ? FALSE : g_str_match_string(value,actual,TRUE);
 			break;
 	}
 
@@ -894,10 +915,18 @@ static FindCondition *parse_xattr(const gchar **expression)
 
 	str = g_string_new(NULL);
 
-	if (MATCH(_("label"))) {
+	if (MATCH(_("label")))
 		type = X_LABEL;
-	} else if(MATCH(_("xattr")))
+	else if(MATCH(_("xattr")))
 		type = X_ATTR;
+	else if(MATCH(_("xmtype")))
+		type = X_MEDIA_TYPE;
+	else if(MATCH(_("xmauth")))
+		type = X_MEDIA_AUTHOR;
+	else if(MATCH(_("xmpub")))
+		type = X_MEDIA_PUB;
+	else if(MATCH(_("xmdate")))
+		type = X_MEDIA_DATE;
 	else
 		return NULL;
 
