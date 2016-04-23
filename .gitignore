@@ -1,5 +1,6 @@
-# Ignore emacs backup files
+# Ignore backup files
 *~
+*.swp
 # and the generated manual page
 rox.1
 # and buildfiles
