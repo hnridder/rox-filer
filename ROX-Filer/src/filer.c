@@ -2450,6 +2450,22 @@ void filer_add_tip_details(FilerWindow *filer_window,
 			g_free(target);
 		}
 	}
+
+	if (item->flags & ITEM_FLAG_HAS_XATTR)
+	{
+		gchar *comment;
+
+		comment = xattr_get(fullpath, "user.comment", NULL);
+
+		if(comment)
+		{
+			ensure_utf8(&comment);
+
+			g_string_append(tip, comment);
+			g_string_append_c(tip, '\n');
+			g_free(comment);
+		}
+	}
 	
 	if (item->flags & ITEM_FLAG_APPDIR)
 	{
