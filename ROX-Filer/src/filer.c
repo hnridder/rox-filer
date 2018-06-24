@@ -1321,9 +1321,8 @@ void filer_open_parent(FilerWindow *filer_window)
 
 void change_to_parent(FilerWindow *filer_window)
 {
-	gchar	*dir;
+	gchar	*dir, *base;
 	const char *current = filer_window->sym_path;
-	gchar	*base;
 
 	if (current[0] == '/' && current[1] == '\0')
 		return;		/* Already in the root */
@@ -1547,7 +1546,7 @@ FilerWindow *filer_opendir(const char *path, FilerWindow *src_win,
 	filer_window->display_style_wanted = UNKNOWN_STYLE;
 	filer_window->thumb_queue = NULL;
 	filer_window->max_thumbs = 0;
-	filer_window->sort_type = -1;
+	filer_window->sort_type = SORT_UNKNOWN;
 
 	filer_window->filter = FILER_SHOW_ALL;
 	filer_window->filter_string = NULL;
