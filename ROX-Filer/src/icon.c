@@ -35,6 +35,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h>
 #include <gdk/gdkx.h>
 
 #include "global.h"

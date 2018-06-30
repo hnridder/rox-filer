@@ -177,9 +177,9 @@ static GtkWidget	*filer_filter_dirs_menu;/* The Filter Dirs item */
 static GtkWidget	*filer_reverse_menu;	/* The Reversed item */
 static GtkWidget	*filer_thumb_menu;	/* The Show Thumbs item */
 static GtkWidget	*filer_new_window;	/* The New Window item */
-static GtkWidget    *filer_new_menu;        /* The New submenu */
-static GtkWidget    *filer_follow_sym;      /* Follow symbolic links item */
-static GtkWidget    *filer_set_type;        /* Set type item */
+static GtkWidget        *filer_new_menu;        /* The New submenu */
+static GtkWidget        *filer_follow_sym;      /* Follow symbolic links item */
+static GtkWidget        *filer_set_type;        /* Set type item */
 #if defined(HAVE_GETXATTR) || defined(HAVE_ATTROPEN)
 static GtkWidget	*filer_xattrs;	/* Extended attributes item */
 #endif
@@ -1437,39 +1437,38 @@ static void new_file(gpointer data, guint action, GtkWidget *widget)
 static gboolean new_file_type_cb(GObject *savebox,
 			         const gchar *initial, const gchar *path)
 {
-	const gchar *oleaf, *leaf;
-	gchar *templ, *rtempl, *templ_dname, *dest, *base;
+	gchar *oleaf, *leaf;
+	gchar *templ, *rtempl, *templ_dname, *dest;
 	GList *paths;
 
 	/* We can work out the template path from the initial name */
-	base = g_path_get_basename(initial);
-	oleaf = base;
+	oleaf = g_path_get_basename(initial);
 	templ_dname = choices_find_xdg_path_load("Templates", "", SITE);
 	if (!templ_dname)
 	{
 		report_error(
 		_("Error creating file: could not find the template for %s"),
 				oleaf);
+		g_free(oleaf);
 		return FALSE;
 	}
 
 	templ = g_strconcat(templ_dname, "/", oleaf, NULL);
+	g_free(oleaf);
 	g_free(templ_dname);
 	rtempl = pathdup(templ);
 	g_free(templ);
-	g_free(base);
 
-	base = g_path_get_basename(path);
 	dest = g_path_get_dirname(path);
-	leaf = base;
+	leaf = g_path_get_basename(path);
 	paths = g_list_append(NULL, rtempl);
 
 	action_copy(paths, dest, leaf, TRUE);
 
 	g_list_free(paths);
 	g_free(dest);
+	g_free(leaf);
 	g_free(rtempl);
-	g_free(base);
 
 	if (filer_exists(window_with_focus))
 		display_set_autoselect(window_with_focus, leaf);
@@ -1486,21 +1485,19 @@ static void do_send_to(gchar *templ)
 
 static void new_file_type(gchar *templ)
 {
-	const gchar *leaf;
+	gchar *leaf;
 	MIME_type *type;
-	gchar *base;
 
 	g_return_if_fail(window_with_focus != NULL);
 	
-	base = g_path_get_basename(templ);
-	leaf = base;
+	leaf = g_path_get_basename(templ);
 	type = type_get_type(templ);
 
 	savebox_show(_("Create"),
 		make_path(window_with_focus->sym_path, leaf),
 		type_to_icon(type),
 		new_file_type_cb, GDK_ACTION_COPY);
-	g_free(base);
+	g_free(leaf);
 }
 
 static void customise_send_to(gpointer data)

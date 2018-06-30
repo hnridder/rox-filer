@@ -809,7 +809,6 @@ static GtkWidget *make_file_says(const guchar *path)
 	char 		*argv[] = {"file", "-b", NULL, NULL};
 	FileStatus 	*fs = NULL;
 	guchar 		*tmp;
-	gchar		*base = NULL;
 
 	w_file_label = gtk_label_new(_("<nothing yet>"));
 	l_file_label = GTK_LABEL(w_file_label);
@@ -841,14 +840,13 @@ static GtkWidget *make_file_says(const guchar *path)
 #ifdef FILE_B_FLAG
 			argv[2] = (char *) path;
 #else
-			base = g_path_get_basename(path);
-			argv[1] = base;
+			/* No need to free these, as we're about to exec anyway */
+			argv[1] = (char *) g_path_get_basename(path);
 			chdir(g_path_get_dirname(path));
 #endif
 			if (execvp(argv[0], argv))
 				fprintf(stderr, "execvp() error: %s\n",
 						g_strerror(errno));
-			g_free(base);
 			_exit(0);
 		default:
 			/* We are the parent */

@@ -920,7 +920,6 @@ static void do_delete(const char *src_path, const char *unused)
 	struct stat 	info;
 	gboolean	write_prot;
 	char		*safe_path;
-	gchar		*base = g_path_get_basename(src_path);
 
 	check_flags();
 
@@ -967,7 +966,10 @@ static void do_delete(const char *src_path, const char *unused)
 		send_error();
 	else
 	{
+		gchar *base;
+
 		send_check_path(safe_path);
+		base = g_path_get_basename(safe_path);
 		if (strcmp(base, ".DirIcon") == 0)
 		{
 			gchar *dir;
@@ -975,10 +977,10 @@ static void do_delete(const char *src_path, const char *unused)
 			send_check_path(dir);
 			g_free(dir);
 		}
+		g_free(base);
 	}
 
 	g_free(safe_path);
-	g_free(base);
 }
 
 static void do_eject(const char *path)
@@ -1033,8 +1035,8 @@ static void do_eject(const char *path)
  */
 static void do_find(const char *path, const char *unused)
 {
+	gchar		*base;
 	FindInfo	info;
-	gchar *base = g_path_get_basename(path);
 
 	check_flags();
 
@@ -1073,6 +1075,7 @@ static void do_find(const char *path, const char *unused)
 	info.fullpath = path;
 	time(&info.now);	/* XXX: Not for each check! */
 
+	base = g_path_get_basename(path);
 	info.leaf = base;
 	info.prune = FALSE;
 	if (find_test_condition(find_condition, &info))
@@ -1702,7 +1705,6 @@ static void usage_cb(gpointer data)
 	GList *paths = (GList *) data;
 	double	total_size = 0;
 	int n, i, per;
-	gchar *base;
 
 	n=g_list_length(paths);
 	dir_counter = file_counter = 0;
@@ -1710,6 +1712,7 @@ static void usage_cb(gpointer data)
 	for (i=0; paths; paths = paths->next, i++)
 	{
 		guchar	*path = (guchar *) paths->data;
+		gchar	*base;
 
 		send_dir(path);
 
@@ -1884,7 +1887,6 @@ static void chmod_cb(gpointer data)
 {
 	GList *paths = (GList *) data;
 	int n, i, per;
-	gchar *base;
 
 	n=g_list_length(paths);
 
@@ -1902,8 +1904,9 @@ static void chmod_cb(gpointer data)
 
 		if (mc_stat(path, &info) != 0)
 			send_error();
-		else if (S_ISLNK(info.st_mode)) {
-			base = g_path_get_basename(path);
+		else if (S_ISLNK(info.st_mode))
+                {
+			gchar *base = g_path_get_basename(path);
 			printf_send(_("!'%s' is a symbolic link\n"), base);
 			g_free(base);
 		}
@@ -1918,7 +1921,6 @@ static void settype_cb(gpointer data)
 {
 	GList *paths = (GList *) data;
 	int n, i, per;
-	gchar *base;
 
 	n=g_list_length(paths);
 
@@ -1936,8 +1938,9 @@ static void settype_cb(gpointer data)
 
 		if (mc_stat(path, &info) != 0)
 			send_error();
-		else if (S_ISLNK(info.st_mode)) {
-			base = g_path_get_basename(path);
+		else if (S_ISLNK(info.st_mode))
+		{
+			gchar *base = g_path_get_basename(path);
 			printf_send(_("!'%s' is a symbolic link\n"), base);
 			g_free(base);
 		}
