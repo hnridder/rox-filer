@@ -159,7 +159,8 @@ static Tool all_tools[] = {
 	toolbar_dirs_clicked, DROP_NONE, FALSE,
 	FALSE},
 	
-	{N_("Select"), ROX_STOCK_SELECT, N_("Select all/invert selection"),
+	{N_("Select"), ROX_STOCK_SELECT, N_("Left: Invert selection\n"
+          "Middle: Select all"),
 	 toolbar_select_clicked, DROP_NONE, FALSE,
 	 FALSE},
  	
@@ -555,10 +556,10 @@ static void toolbar_select_clicked(GtkWidget *widget, FilerWindow *filer_window)
 	if (event->type == GDK_BUTTON_RELEASE)
 	{
 		if (((GdkEventButton *) event)->button == 1)
-			view_select_all(filer_window->view);
-		else
 			view_select_if(filer_window->view, invert_cb,
 				       filer_window->view);
+		else
+			view_select_all(filer_window->view);
 	}
 	filer_window->temp_item_selected = FALSE;
 	gdk_event_free(event);
